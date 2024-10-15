@@ -17,6 +17,13 @@ inputs:
     description: "Save Files on S3?"
     type: boolean
     default: false
+  openAI_model:
+    description: "Open AI model to use for summary"
+    type: sting
+    default: "gpt-3.5-turbo"
+  openAI_user_prompt:
+    description: "Message to send to OpenAI"
+    type: string
   verbose:
     description: "Enable verbose logs"
     type: boolean
@@ -93,6 +100,10 @@ runs:
       DNS_FILTER="evt.type in (recvmsg,read,recv,recvfrom) and fd.rport=53 and fd.l4proto=udp"
       DNS_OUTPUT="%evt.buffer"
       ${{github.action_path}}/src/run_sysdig.sh filter "/tmp/capture.scap" "$DNS_FILTER" "$DNS_OUTPUT" "/tmp/buffers.txt"
+      if [[ ! -s /tmp/buffers.txt ]]; then
+        echo "Warning: No contacted DNS domains found"
+        exit 0
+      fi
       cat /tmp/buffers.txt | grep -o -E "[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*(\.[a-zA-Z]{2,})" | grep -E -v "NULL" | grep -E -v "ns." | grep -E -v "\->" | grep -E -v "evt.buffer" | sort | uniq > /tmp/dns_extract.txt
       if [[ "${{ inputs.verbose }}" == "true" ]]; then
         echo "Extracted DNS domains" && cat /tmp/dns_extract.txt
@@ -127,7 +138,13 @@ runs:
       CONTAINER_FILTER="evt.type=container"
       CONTAINER_OUTPUT="%container.name,%container.image.repository"
       ${{github.action_path}}/src/run_sysdig.sh filter "/tmp/capture.scap" "$CONTAINER_FILTER" "$CONTAINER_OUTPUT" "/tmp/containers.txt"
-      sort -u -o /tmp/containers.txt /tmp/containers.txt
+      if [[ -s /tmp/containers.txt ]]; then
+        sort -u -o /tmp/containers.txt /tmp/containers.txt
+        echo "Sorted /tmp/containers.txt"
+      else
+        echo "File /tmp/containers.txt is empty. Impossible to sort it."
+      fi
+      
 
   - name: Retrieve Job Info using GitHub API
     shell: bash
@@ -159,39 +176,64 @@ runs:
           ${{github.action_path}}/pr-comment.sh /tmp/falco_events.json ${{ github.token }}
         else
           echo "Printing triggered rules in Job summary"
-          echo "# Falco Events" >> $GITHUB_STEP_SUMMARY
-          python3 ${{github.action_path}}/src/falco_events_to_md.py /tmp/falco_events.json /tmp/steps.json >> $GITHUB_STEP_SUMMARY
+          echo "# Report Details" >> /tmp/report_output.md
+          echo "## Falco Events" >> /tmp/report_output.md
+          python3 ${{github.action_path}}/src/falco_events_to_md.py /tmp/falco_events.json /tmp/steps.json >> /tmp/report_output.md
         fi
       fi
 
+      # Containers
+      container=$(python3 ${{github.action_path}}/src/json_to_md.py /tmp/containers.txt)
+      echo "Container: $container"
+      if [[ ! -z "$container" ]]; then
+        echo "## Containers" >> /tmp/report_output.md
+        echo "$container" >> /tmp/report_output.md
+      fi
+
       # Processes
-      echo "# Processes" >> $GITHUB_STEP_SUMMARY
-      python3 ${{github.action_path}}/src/json_to_md.py /tmp/proc.txt >> $GITHUB_STEP_SUMMARY
+      echo "## Processes" >> /tmp/report_output.md
+      python3 ${{github.action_path}}/src/json_to_md.py /tmp/proc.txt >> /tmp/report_output.md
 
       # Written files
-      echo "# Written Files" >> $GITHUB_STEP_SUMMARY
-      python3 ${{github.action_path}}/src/json_to_md.py /tmp/files_written.txt >> $GITHUB_STEP_SUMMARY
+      echo "## Written Files" >> /tmp/report_output.md
+      python3 ${{github.action_path}}/src/json_to_md.py /tmp/files_written.txt >> /tmp/report_output.md
 
       # Contacted IPs
-      echo "# Contacted IPs" >> $GITHUB_STEP_SUMMARY
-      python3 ${{github.action_path}}/src/json_to_md.py /tmp/outbound.txt >> $GITHUB_STEP_SUMMARY
+      echo "## Contacted IPs" >> /tmp/report_output.md
+      python3 ${{github.action_path}}/src/json_to_md.py /tmp/outbound.txt >> /tmp/report_output.md
 
       # DNS
-      echo "# Contacted DNS Domains" >> $GITHUB_STEP_SUMMARY
-      python3 ${{github.action_path}}/src/json_to_md.py /tmp/dns_extract_json.txt >> $GITHUB_STEP_SUMMARY
+      echo "# Contacted DNS Domains" >> /tmp/report_output.md
+      python3 ${{github.action_path}}/src/json_to_md.py /tmp/dns_extract_json.txt >> /tmp/report_output.md
 
       # Containers
-      echo "# Containers" >> $GITHUB_STEP_SUMMARY
-      python3 ${{github.action_path}}/src/json_to_md.py /tmp/containers.txt >> $GITHUB_STEP_SUMMARY
+      echo "# Containers" >> /tmp/report_output.md
+      python3 ${{github.action_path}}/src/json_to_md.py /tmp/containers.txt >> /tmp/report_output.md
 
       # Hashes
-      echo "# Executable Hashes" >> $GITHUB_STEP_SUMMARY
-      python3 ${{github.action_path}}/src/json_to_md.py /tmp/hashes.txt >> $GITHUB_STEP_SUMMARY
+      echo "# Executable Hashes" >> /tmp/report_output.md
+      python3 ${{github.action_path}}/src/json_to_md.py /tmp/hashes.txt >> /tmp/report_output.md
 
       # Top Connections
-      echo "# Top Connections" >> $GITHUB_STEP_SUMMARY
-      python3 ${{github.action_path}}/src/capture_to_md.py /tmp/top_connection.txt >> $GITHUB_STEP_SUMMARY
-      echo "" >> $GITHUB_STEP_SUMMARY
+      echo "## Top Connections" >> /tmp/report_output.md
+      python3 ${{github.action_path}}/src/capture_to_md.py /tmp/top_connection.txt >> /tmp/report_output.md
+      echo "" >> /tmp/report_output.md
+
+      if ${{ env.OPENAI_API_KEY != '' }}; then
+        echo "Creating Report Summary using OpenAI"
+        echo "# Report Summary" >> $GITHUB_STEP_SUMMARY
+        echo "installing python dependencies"
+        python3 -m pip install -r ${{github.action_path}}/src/requirements.txt
+        echo "Calling OpenAI APIs for summary"
+        if ${{inputs.openAI_user_prompt == ''}}; then
+          python3 ${{github.action_path}}/src/create_summary.py /tmp/report_output.md --model "${{inputs.openAI_model}}" >> $GITHUB_STEP_SUMMARY
+        else
+          python3 ${{github.action_path}}/src/create_summary.py /tmp/report_output.md --model "${{inputs.openAI_model}}" --user_input "${{inputs.openAI_user_prompt}}" >> $GITHUB_STEP_SUMMARY
+        fi
+      fi
+
+      echo "Appending report to github summary"
+      cat /tmp/report_output.md >> $GITHUB_STEP_SUMMARY
 
   - name: Push profile to repository
     if: ${{ inputs.profile_enabled == 'true'}}
@@ -215,20 +257,18 @@ runs:
       ${{github.action_path}}/src/push_profile.sh
 
   - name: Save captures and events on S3 bucket
-    if: ${{ inputs.save_capture == 'true'}}
+    if: ${{ inputs.save_capture == 'true' && env.AWS_ACCESS_KEY_ID != '' && env.AWS_SECRET_ACCESS_KEY != '' && env.S3_BUCKET != ''}}
     shell: bash
     run: |
-        sudo apt-get update
-        sudo apt-get install -y awscli
+      sudo apt-get update
+      sudo apt-get install -y awscli
  
-        aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
-        aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
-        aws configure set default.region ${{ env.AWS_DEFAULT_REGION }}
+      aws configure set aws_access_key_id ${{ env.AWS_ACCESS_KEY_ID }}
+      aws configure set aws_secret_access_key ${{ env.AWS_SECRET_ACCESS_KEY }}
+      aws configure set default.region ${{ env.AWS_DEFAULT_REGION }}
 
-        FOLDER_NAME=$(date +"%Y%m%d_%H%M%S")
-        CAPTURE_FILE_NAME="capture_$FOLDER_NAME.scap"
-        EVENT_FILE_NAME="events_$FOLDER_NAME.json"
-        S3_DESTINATION_FOLDER="s3://${{ env.S3_BUCKET }}/$FOLDER_NAME"
-        echo $S3_DESTINATION
-        aws s3 cp /tmp/capture.scap "$S3_DESTINATION_FOLDER/$CAPTURE_FILE_NAME"
-        #aws s3 cp ${{ env.EVENT_FILE }} "$S3_DESTINATION_FOLDER/$EVENT_FILE_NAME"
+      FOLDER_NAME=$(date +"%Y%m%d_%H%M%S")
+      CAPTURE_FILE_NAME="capture_$FOLDER_NAME.scap"
+      EVENT_FILE_NAME="events_$FOLDER_NAME.json"
+      S3_DESTINATION_FOLDER="s3://${{ env.AWS_S3_BUCKET_NAME }}/$FOLDER_NAME"
+      aws s3 cp /tmp/capture.scap "$S3_DESTINATION_FOLDER/$CAPTURE_FILE_NAME"

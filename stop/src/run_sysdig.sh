@@ -64,7 +64,7 @@ if [ "$filter_or_chisel" == "filter" ]; then
       # Ensure the output file exists, is not empty and that anybody can read it
       # Do not fail if the filter does not produce any output, as it may be valid.
       if [ ! -s "$output_file" ]; then
-            echo "Error: Output file is non-existent or empty. The filter may not have produced any output."
+            echo "Warning: Output file is non-existent or empty. The filter may not have produced any output."
             exit 0
       fi
       sudo chmod 666 "$output_file"
