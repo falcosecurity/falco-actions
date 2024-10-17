@@ -182,14 +182,6 @@ runs:
         fi
       fi
 
-      # Containers
-      container=$(python3 ${{github.action_path}}/src/json_to_md.py /tmp/containers.txt)
-      echo "Container: $container"
-      if [[ ! -z "$container" ]]; then
-        echo "## Containers" >> /tmp/report_output.md
-        echo "$container" >> /tmp/report_output.md
-      fi
-
       # Processes
       echo "## Processes" >> /tmp/report_output.md
       python3 ${{github.action_path}}/src/json_to_md.py /tmp/proc.txt >> /tmp/report_output.md
