@@ -1,7 +1,5 @@
 import click
 from openairequests import OpenAIRequest
-import re
-from io import StringIO
 
 
 def propose_update_for_rule(report_file_content, model, comment):

@@ -16,8 +16,6 @@ class OpenAIRequest:
         self.model = model
         self.user_input = user_input
 
-
-
     def generate_description(self):
         attempts=0
         rec=""
@@ -25,7 +23,7 @@ class OpenAIRequest:
 
         while rec == "" and attempts < 3:
             try:
-                # Send the prompt to GPT-3 with the rule file content
+                # Send prompt to the OpenAI API
                 if self.user_input is not None:
                     response = client.chat.completions.create(
                         model=f"{str(self.model)}",

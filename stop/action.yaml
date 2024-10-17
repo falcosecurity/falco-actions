@@ -214,13 +214,13 @@ runs:
       if ${{ env.OPENAI_API_KEY != '' }}; then
         echo "Creating Report Summary using OpenAI"
         echo "# Report Summary" >> $GITHUB_STEP_SUMMARY
-        echo "installing python dependencies"
-        python3 -m pip install -r ${{github.action_path}}/src/requirements.txt
+        echo "Installing python dependencies"
+        python3 -m pip install -r ${{github.action_path}}/src/integrations/openai/requirements.txt
         echo "Calling OpenAI APIs for summary"
         if ${{inputs.openAI_user_prompt == ''}}; then
-          python3 ${{github.action_path}}/src/create_summary.py /tmp/report_output.md --model "${{inputs.openAI_model}}" >> $GITHUB_STEP_SUMMARY
+          python3 ${{github.action_path}}/src/integrations/openai/create_summary.py /tmp/report_output.md --model "${{inputs.openAI_model}}" >> $GITHUB_STEP_SUMMARY
         else
-          python3 ${{github.action_path}}/src/create_summary.py /tmp/report_output.md --model "${{inputs.openAI_model}}" --user_input "${{inputs.openAI_user_prompt}}" >> $GITHUB_STEP_SUMMARY
+          python3 ${{github.action_path}}/src/integrations/openai/create_summary.py /tmp/report_output.md --model "${{inputs.openAI_model}}" --user_input "${{inputs.openAI_user_prompt}}" >> $GITHUB_STEP_SUMMARY
         fi
       fi
 
