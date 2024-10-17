@@ -168,19 +168,29 @@ runs:
       
   - name: Build summary
     shell: bash
+    env:
+      RUN_ID: ${{ github.run_id }}
+      REPO: ${{ github.repository }}
     run: |
       # Falco events
       if [[ -s /tmp/falco_events.json ]]; then
+        echo "Printing triggered rules in Job summary"
+        echo "# Report Details" >> /tmp/report_output.md
+        echo "## Falco Events" >> /tmp/report_output.md
+        content=$(python3 ${{github.action_path}}/src/falco_events_to_md.py /tmp/falco_events.json /tmp/steps.json)
+        echo "$content" >> /tmp/report_output.md
+      
         if ${{ github.event_name == 'pull_request' }}; then
           echo "Creating PR comment with triggered signatures"
-          ${{github.action_path}}/pr-comment.sh /tmp/falco_events.json ${{ github.token }}
-        else
-          echo "Printing triggered rules in Job summary"
-          echo "# Report Details" >> /tmp/report_output.md
-          echo "## Falco Events" >> /tmp/report_output.md
-          python3 ${{github.action_path}}/src/falco_events_to_md.py /tmp/falco_events.json /tmp/steps.json >> /tmp/report_output.md
+          FILE_CONTENT=$(echo "$content" | sed 's/\\/\\\\/g' | sed ':a;N;$!ba;s/\n/\\n/g')
+          curl -X POST \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "{\"body\": \"***Falco Rules*** \\n\\n ${FILE_CONTENT} \\n\\n Find out more at https://github.com/$REPO/actions/runs/$RUN_ID\"}" \
+            https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments
         fi
       fi
+
 
       # Processes
       if [[ -s /tmp/proc.txt ]]; then
@@ -196,6 +206,7 @@ runs:
 
       # Contacted IPs
       if [[ -s /tmp/outbound.txt ]]; then
+        cat /tmp/outbound.txt
         echo "## Contacted IPs" >> /tmp/report_output.md
         python3 ${{github.action_path}}/src/json_to_md.py /tmp/outbound.txt >> /tmp/report_output.md
       fi
