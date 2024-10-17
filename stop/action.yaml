@@ -183,34 +183,50 @@ runs:
       fi
 
       # Processes
-      echo "## Processes" >> /tmp/report_output.md
-      python3 ${{github.action_path}}/src/json_to_md.py /tmp/proc.txt >> /tmp/report_output.md
+      if [[ -s /tmp/proc.txt ]]; then
+        echo "## Processes" >> /tmp/report_output.md
+        python3 ${{github.action_path}}/src/json_to_md.py /tmp/proc.txt >> /tmp/report_output.md
+      fi
 
       # Written files
-      echo "## Written Files" >> /tmp/report_output.md
-      python3 ${{github.action_path}}/src/json_to_md.py /tmp/files_written.txt >> /tmp/report_output.md
+      if [[ -s /tmp/files_written.txt ]]; then
+        echo "## Written Files" >> /tmp/report_output.md
+        python3 ${{github.action_path}}/src/json_to_md.py /tmp/files_written.txt >> /tmp/report_output.md
+      fi
 
       # Contacted IPs
-      echo "## Contacted IPs" >> /tmp/report_output.md
-      python3 ${{github.action_path}}/src/json_to_md.py /tmp/outbound.txt >> /tmp/report_output.md
+      if [[ -s /tmp/outbound.txt ]]; then
+        echo "## Contacted IPs" >> /tmp/report_output.md
+        python3 ${{github.action_path}}/src/json_to_md.py /tmp/outbound.txt >> /tmp/report_output.md
+      fi
 
       # DNS
-      echo "# Contacted DNS Domains" >> /tmp/report_output.md
-      python3 ${{github.action_path}}/src/json_to_md.py /tmp/dns_extract_json.txt >> /tmp/report_output.md
+      if [[ -s /tmp/dns_extract_json.txt ]]; then
+        echo "## Contacted DNS Domains" >> /tmp/report_output.md
+        python3 ${{github.action_path}}/src/json_to_md.py /tmp/dns_extract_json.txt >> /tmp/report_output.md
+      fi
 
       # Containers
-      echo "# Containers" >> /tmp/report_output.md
-      python3 ${{github.action_path}}/src/json_to_md.py /tmp/containers.txt >> /tmp/report_output.md
+      if [[ -s /tmp/containers.txt ]]; then
+        echo "# Containers" >> /tmp/report_output.md
+        python3 ${{github.action_path}}/src/json_to_md.py /tmp/containers.txt >> /tmp/report_output.md
+      fi
 
       # Hashes
-      echo "# Executable Hashes" >> /tmp/report_output.md
-      python3 ${{github.action_path}}/src/json_to_md.py /tmp/hashes.txt >> /tmp/report_output.md
+      if [[ -s /tmp/hashes.txt ]]; then
+        echo "# Executable Hashes" >> /tmp/report_output.md
+        python3 ${{github.action_path}}/src/json_to_md.py /tmp/hashes.txt >> /tmp/report_output.md
+      fi
 
       # Top Connections
-      echo "## Top Connections" >> /tmp/report_output.md
-      python3 ${{github.action_path}}/src/capture_to_md.py /tmp/top_connection.txt >> /tmp/report_output.md
+      if [[ -s /tmp/top_connection.txt ]]; then
+        echo "## Top Connections" >> /tmp/report_output.md
+        python3 ${{github.action_path}}/src/capture_to_md.py /tmp/top_connection.txt >> /tmp/report_output.md
+      fi
+
       echo "" >> /tmp/report_output.md
 
+      # If OpenAI API key is set, create a brief summary using OpenAI
       if ${{ env.OPENAI_API_KEY != '' }}; then
         echo "Creating Report Summary using OpenAI"
         echo "# Report Summary" >> $GITHUB_STEP_SUMMARY
@@ -239,12 +255,29 @@ runs:
       fi
       
       ls -la ${{inputs.profile_dir}}/
-      cp /tmp/proc.txt ${{inputs.profile_dir}}/profile_proc.txt
-      cp /tmp/files_written.txt ${{inputs.profile_dir}}/profile_files_written.txt
-      cp /tmp/outbound.txt ${{inputs.profile_dir}}/profile_conn.txt
-      cp /tmp/dns_extract_json.txt ${{inputs.profile_dir}}/profile_dns.txt
-      cp /tmp/hashes.txt ${{inputs.profile_dir}}/profile_hashes.txt
-      cp /tmp/containers.txt ${{inputs.profile_dir}}/profile_containers.txt
+      if [ -s /tmp/proc.txt ]; then
+        cp /tmp/proc.txt ${{inputs.profile_dir}}/profile_proc.txt
+      fi
+
+      if [ -s /tmp/files_written.txt ]; then
+        cp /tmp/files_written.txt ${{inputs.profile_dir}}/profile_files_written.txt
+      fi
+
+      if [ -s /tmp/outbound.txt ]; then
+        cp /tmp/outbound.txt ${{inputs.profile_dir}}/profile_conn.txt
+      fi
+
+      if [ -s /tmp/dns_extract_json.txt ]; then
+        cp /tmp/dns_extract_json.txt ${{inputs.profile_dir}}/profile_dns.txt
+      fi
+
+      if [ -s /tmp/hashes.txt ]; then
+        cp /tmp/hashes.txt ${{inputs.profile_dir}}/profile_hashes.txt
+      fi
+
+      if [ -s /tmp/containers.txt ]; then
+        cp /tmp/containers.txt ${{inputs.profile_dir}}/profile_containers.txt
+      fi
       
       ${{github.action_path}}/src/push_profile.sh
 
