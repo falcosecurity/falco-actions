@@ -191,7 +191,6 @@ runs:
         fi
       fi
 
-
       # Processes
       if [[ -s /tmp/proc.txt ]]; then
         echo "## Processes" >> /tmp/report_output.md
@@ -206,9 +205,14 @@ runs:
 
       # Contacted IPs
       if [[ -s /tmp/outbound.txt ]]; then
-        cat /tmp/outbound.txt
         echo "## Contacted IPs" >> /tmp/report_output.md
-        python3 ${{github.action_path}}/src/json_to_md.py /tmp/outbound.txt >> /tmp/report_output.md
+        if ${{ env.VT_API_KEY != '' }}; then
+          echo "Querying VirusTotal for IPs"
+          python3 ${{github.action_path}}/src/integrations/virustotal/vt_script.py /tmp/outbound.txt --mode ips >> /tmp/outbound_vt.txt
+          python3 ${{github.action_path}}/src/json_to_md.py /tmp/outbound_vt.txt >> /tmp/report_output.md
+        else
+          python3 ${{github.action_path}}/src/json_to_md.py /tmp/outbound.txt >> /tmp/report_output.md
+        fi
       fi
 
       # DNS
@@ -226,8 +230,14 @@ runs:
       # Hashes
       if [[ -s /tmp/hashes.txt ]]; then
         echo "# Executable Hashes" >> /tmp/report_output.md
-        python3 ${{github.action_path}}/src/json_to_md.py /tmp/hashes.txt >> /tmp/report_output.md
-      fi
+        if ${{ env.VT_API_KEY != '' }}; then
+          echo "Querying VirusTotal for hashes"
+          python3 ${{github.action_path}}/src/integrations/virustotal/vt_script.py /tmp/hashes.txt --mode hashes >> /tmp/hashes_vt.txt
+          python3 ${{github.action_path}}/src/json_to_md.py /tmp/hashes_vt.txt >> /tmp/report_output.md
+        else
+          python3 ${{github.action_path}}/src/json_to_md.py /tmp/hashes.txt >> /tmp/report_output.md
+        fi
+      fi  
 
       # Top Connections
       if [[ -s /tmp/top_connection.txt ]]; then
