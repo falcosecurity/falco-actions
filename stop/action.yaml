@@ -6,6 +6,10 @@ inputs:
     description: 'Custom rule file'
     required: false
     default: ''
+  filters_config:
+    description: 'Filter configuration file'
+    required: false
+    default: 'src/filters.config'
   profile_enabled: 
     description: 'Enable profiling. Requires write access to repository'
     type: boolean 
@@ -61,18 +65,26 @@ runs:
     env:
       VERBOSE: ${{ inputs.verbose }}
     run: |
-      OUTBOUND_FILTER="(((evt.type = connect and evt.dir=<) or (evt.type in (sendto,sendmsg,sendmmsg) and evt.dir=< and fd.l4proto != tcp and fd.connected=false and fd.name_changed=true)) and (fd.typechar = 4 or fd.typechar = 6) and (fd.ip != \"0.0.0.0\" and fd.net != \"127.0.0.0/8\" and not fd.snet in (\"10.0.0.0/8\", \"172.16.0.0/12\", \"192.168.0.0/16\"))) and not proc.name in (pythonist, dragent, ssm-agent-worke) and not proc.pname in (eic_curl_author, dhclient-script)" 
+      OUTBOUND_FILTER="(((evt.type = connect and evt.dir=<) or (evt.type in (sendto,sendmsg,sendmmsg) and evt.dir=< and fd.l4proto != tcp and fd.connected=false and fd.name_changed=true)) and (fd.typechar = 4 or fd.typechar = 6) and (fd.ip != \"0.0.0.0\" and fd.net != \"127.0.0.0/8\" and not fd.snet in (\"10.0.0.0/8\", \"172.16.0.0/12\", \"192.168.0.0/16\")))" 
+      CUSTOM_FILTERS=$(jq -r '.outbound_connections // [] | .[] | "and not (\(.condition) )"' "${{github.action_path}}/${{inputs.filters_config}}" | sed "s/'/\"/g" | tr '\n' ' ' | sed 's/[[:space:]]*$//')
+      if [ "${{ inputs.verbose }}" = "true" ]; then
+        echo "Custom filters: $CUSTOM_FILTERS"
+      fi
       OUTBOUND_OUTPUT="%fd.sip,%fd.sport,%proc.name,%proc.exepath,%user.name"
-      ${{github.action_path}}/src/run_sysdig.sh filter "/tmp/capture.scap" "$OUTBOUND_FILTER" "$OUTBOUND_OUTPUT" "/tmp/outbound.txt"
+      ${{github.action_path}}/src/run_sysdig.sh filter "/tmp/capture.scap" "$OUTBOUND_FILTER $CUSTOM_FILTERS" "$OUTBOUND_OUTPUT" "/tmp/outbound.txt"
 
   - name: Extract written files
     shell: bash
     env:
       VERBOSE: ${{ inputs.verbose }}
     run: |
-      FILE_WRITTEN_FILTER="evt.type in (open,openat,openat2) and evt.is_open_write=true and fd.typechar=\"f\" and fd.num>=0 and ( not fd.name startswith \"/var/lib/docker/\" and not fd.name startswith \"/home/runner/work/_temp/_runner_file_commands/\") and not (fd.name startswith \"/home/runner/runners/\" and proc.exepath endswith \"/bin/Runner.Worker\" and proc.pexepath endswith \"/bin/Runner.Listener\")"
+      FILE_WRITTEN_FILTER="evt.type in (open,openat,openat2) and evt.is_open_write=true and fd.typechar=\"f\" and fd.num>=0"
+      CUSTOM_FILTERS=$(jq -r '.written_files // [] | .[] | "and not (\(.condition) )"' "${{github.action_path}}/${{inputs.filters_config}}" | sed "s/'/\"/g" | tr '\n' ' ' | sed 's/[[:space:]]*$//')
+      if [ "${{ inputs.verbose }}" = "true" ]; then
+        echo "Custom filters: $CUSTOM_FILTERS"
+      fi
       FILE_WRITTEN_OUTPUT="%fd.name,%proc.name,%proc.exepath,%proc.pexepath,%user.name"
-      ${{github.action_path}}/src/run_sysdig.sh filter "/tmp/capture.scap" "$FILE_WRITTEN_FILTER" "$FILE_WRITTEN_OUTPUT" "/tmp/files_written.txt"
+      ${{github.action_path}}/src/run_sysdig.sh filter "/tmp/capture.scap" "$FILE_WRITTEN_FILTER $CUSTOM_FILTERS" "$FILE_WRITTEN_OUTPUT" "/tmp/files_written.txt"
 
   - name: Extract processes information
     shell: bash

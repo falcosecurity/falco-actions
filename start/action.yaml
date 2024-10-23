@@ -5,7 +5,7 @@ inputs:
   config_file:
     description: 'Start action with a config file'
     required: false
-    default: 'src/ignore.config'
+    default: 'src/syscall_ignore.config'
   verbose:
     description: 'Enable verbose logs'
     type: boolean
@@ -31,28 +31,11 @@ runs:
       fi
 
       echo "Creating ignore filters"
-      IGNORE_IPS_FILTER="and not fd.sip in ( $(jq -r -f $IGNORE_FILTER_FOLDER/ignore_ips.jq $CONFIG_FILE) ) "
-      IGNORE_FOLDERS_FILTER="and not fd.directory in ( $(jq -r -f $IGNORE_FILTER_FOLDER/ignore_folders.jq $CONFIG_FILE) ) "
-      IGNORE_FILES_FILTER="and not fd.name in ( $(jq -r -f $IGNORE_FILTER_FOLDER/ignore_files.jq $CONFIG_FILE) ) "
       IGNORE_SYSCALLS_FILTER="and not evt.type in ( $(jq -r -f $IGNORE_FILTER_FOLDER/ignore_syscalls.jq $CONFIG_FILE) ) "
-      IGNORE_PROCESSES_FILTER="and not proc.name in ( $(jq -r  -f $IGNORE_FILTER_FOLDER/ignore_processes.jq $CONFIG_FILE) ) "
-
 
       if [[ "${{ inputs.verbose }}" == "true" ]]; then
-        echo "Ignored IPs:"
-        echo $IGNORE_IPS_FILTER
-
-        echo "Ignored Folders:"
-        echo $IGNORE_FOLDERS_FILTER
-
-        echo "Ignored Files:"
-        echo $IGNORE_FILES_FILTER
-
         echo "Ignored Syscalls:"
         echo $IGNORE_SYSCALLS_FILTER
-
-        echo "Ignored Processes:"
-        echo $IGNORE_PROCESSES_FILTER
       fi
 
       echo "Creating Sysdig container"
@@ -63,7 +46,7 @@ runs:
       -v /lib/modules:/host/lib/modules:ro \
       -v /usr:/host/usr:ro \
       -v /tmp:/tmp \
-      --net=host sysdig/sysdig:latest sysdig --modern-bpf -w /tmp/capture.scap --snaplen=256 "not evt.type in (switch) $IGNORE_SYSCALLS_FILTER $IGNORE_PROCESSES_FILTER $IGNORE_FOLDERS_FILTER $IGNORE_FILES_FILTER"
+      --net=host sysdig/sysdig:latest sysdig --modern-bpf -w /tmp/capture.scap --snaplen=256 "not evt.type in (switch) $IGNORE_SYSCALLS_FILTER"
       echo "Sysdig started"
 
       # Ensure Sysdig container is running
