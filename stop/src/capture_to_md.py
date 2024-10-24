@@ -1,17 +1,11 @@
-import argparse
+import click
 
-def main():
-    # Set up argument parsing
-    parser = argparse.ArgumentParser(description="Convert a CSV list to a Markdown table.")
-    parser.add_argument('file', type=str, help='Path to the file containing the CSV data')
-
-    # Parse arguments
-    args = parser.parse_args()
-
+@click.command()
+@click.argument('file_input', type=click.Path(exists=True))
+def main(file_input):
     # Open and read the file
-    with open(args.file, "r") as file:
+    with open(file_input, "r") as file:
         lines = file.readlines()
-
 
     output = []
 

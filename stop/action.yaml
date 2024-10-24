@@ -181,6 +181,7 @@ runs:
       RUN_ID: ${{ github.run_id }}
       REPO: ${{ github.repository }}
     run: |
+      python3 -m pip install -r ${{github.action_path}}/src/requirements.txt
       # Falco events
       if [[ -s /tmp/falco_events.json ]]; then
         echo "Printing triggered rules in Job summary"

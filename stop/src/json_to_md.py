@@ -1,27 +1,14 @@
-import argparse
 import json
 import os
 import sys
+import click
 
 # Transform generic JSON objects to Markdown tables
+@click.command()
+@click.argument('file_input', type=click.Path(exists=True))
+def main(file_input):
 
-def main():
-    parser = argparse.ArgumentParser(description="Convert JSON objects to a Markdown table.")
-    parser.add_argument('file', type=str, help='Path to the file containing the JSON objects, one per line')
-    args = parser.parse_args()
-
-    # Check if the file exists and its size is greater than 0
-    if not os.path.isfile(args.file):
-        print(f"File '{args.file}' does not exist. Nothing to do.", file=sys.stderr)
-        print("Exiting ...", file=sys.stderr)
-        exit(0)
-    
-    if os.path.getsize(args.file) == 0:
-        print(f"File '{args.file}' is empty. Nothing to do.", file=sys.stderr)
-        print("Exiting ...", file=sys.stderr)
-        exit(0)
-
-    with open(args.file, 'r') as f:
+    with open(file_input, 'r') as f:
         lines = f.readlines()
 
     # Parse the first line to get the headers of the table (keys)

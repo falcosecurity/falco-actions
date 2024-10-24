@@ -1,8 +1,8 @@
-import argparse
 from datetime import datetime
 import json
 import re
 import sys
+import click
 
 def markdown_escape(text):
     # List of Markdown special characters to escape
@@ -30,18 +30,13 @@ def falco_timestamp_to_datetime(timestamp):
     # Parse the fixed ISO string
     return datetime.fromisoformat(iso_time_str_fixed)
 
-def main():
-    # Set up argument parsing
 
-    parser = argparse.ArgumentParser(description="Convert JSON Falco events to a Markdown table.")
-    parser.add_argument('file', type=str, help='Path to the file containing the JSON Falco events data')
-    parser.add_argument('correlation_file', type=str, help='Path to the file containing job steps timestamps')
-
-    # Parse arguments
-    args = parser.parse_args()
-
+@click.command()
+@click.argument('file', type=click.Path(exists=True))
+@click.argument('correlation_file', type=click.Path(exists=True))
+def main(file, correlation_file):
     # Open and read the file
-    with open(args.file, "r") as file:
+    with open(file, "r") as file:
         lines = file.readlines()
 
     output = []
@@ -49,7 +44,7 @@ def main():
 
     # Open and read the correlation file
     # Populate the timeline list with the job steps timestamps
-    with open(args.correlation_file, "r") as file:
+    with open(correlation_file, "r") as file:
         data = file.readlines()
         for line in data:
             try:
