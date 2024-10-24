@@ -1,0 +1,17 @@
+name: 'Falco'
+description: 'Run Falco in a GitHub action'
+author: 'The Falco Authors'
+inputs:
+  custom-rule-file:
+    description: 'Custom rule file'
+    required: false
+    default: ''
+  version:
+    description: 'Falco version'
+    required: false
+    default: 'latest'
+
+runs:
+  using: 'node20'
+  main: 'dist/index.js'
+  post: 'dist/stop/index.js'
