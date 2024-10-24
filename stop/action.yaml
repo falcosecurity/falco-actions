@@ -10,13 +10,6 @@ inputs:
     description: 'Filter configuration file'
     required: false
     default: 'src/filters.config'
-  profile_enabled: 
-    description: 'Enable profiling. Requires write access to repository'
-    type: boolean 
-    default: false
-  profile_dir:
-    description: 'Profile dir in repository (Default .falco)'
-    default: '.falco'
   save_capture:
     description: "Save Files on S3?"
     type: boolean
@@ -275,44 +268,6 @@ runs:
 
       echo "Appending report to github summary"
       cat /tmp/report_output.md >> $GITHUB_STEP_SUMMARY
-
-  - name: Push profile to repository
-    if: ${{ inputs.profile_enabled == 'true'}}
-    shell: bash
-    run: |
-      PROFILE_PATH="$GITHUB_WORKSPACE/${{inputs.profile_dir}}"
-      echo "$PROFILE_PATH"
-      if [ ! -d "PROFILE_PATH" ]; then
-        echo "Creating profile dir"
-        mkdir -p "./${{inputs.profile_dir}}"
-      fi
-      
-      ls -la ${{inputs.profile_dir}}/
-      if [ -s /tmp/proc.txt ]; then
-        cp /tmp/proc.txt ${{inputs.profile_dir}}/profile_proc.txt
-      fi
-
-      if [ -s /tmp/files_written.txt ]; then
-        cp /tmp/files_written.txt ${{inputs.profile_dir}}/profile_files_written.txt
-      fi
-
-      if [ -s /tmp/outbound.txt ]; then
-        cp /tmp/outbound.txt ${{inputs.profile_dir}}/profile_conn.txt
-      fi
-
-      if [ -s /tmp/dns_extract_json.txt ]; then
-        cp /tmp/dns_extract_json.txt ${{inputs.profile_dir}}/profile_dns.txt
-      fi
-
-      if [ -s /tmp/hashes.txt ]; then
-        cp /tmp/hashes.txt ${{inputs.profile_dir}}/profile_hashes.txt
-      fi
-
-      if [ -s /tmp/containers.txt ]; then
-        cp /tmp/containers.txt ${{inputs.profile_dir}}/profile_containers.txt
-      fi
-      
-      ${{github.action_path}}/src/push_profile.sh ${{inputs.profile_dir}}
 
   - name: Save captures and events on S3 bucket
     if: ${{ inputs.save_capture == 'true' && env.AWS_ACCESS_KEY_ID != '' && env.AWS_SECRET_ACCESS_KEY != '' && env.S3_BUCKET != ''}}
