@@ -85,6 +85,10 @@ runs:
       VERBOSE: ${{ inputs.verbose }}
     run: |
       PROC_FILTER="evt.type in (execve, execveat) and evt.dir=< and evt.arg.res=0"
+      CUSTOM_FILTERS=$(jq -r '.processes // [] | .[] | "and not (\(.condition) )"' "${{github.action_path}}/${{inputs.filters_config}}" | sed "s/'/\"/g" | tr '\n' ' ' | sed 's/[[:space:]]*$//')
+      if [ "${{ inputs.verbose }}" = "true" ]; then
+        echo "Custom filters: $CUSTOM_FILTERS"
+      fi
       PROC_FILTER_OUTPUT="%proc.name,%proc.exepath,%proc.pname,%proc.pexepath,%user.name"
       ${{github.action_path}}/src/run_sysdig.sh filter "/tmp/capture.scap" "$PROC_FILTER" "$PROC_FILTER_OUTPUT" "/tmp/proc.txt"
 
