@@ -1,0 +1,52 @@
+on:
+  workflow_dispatch:
+
+name: Test Analyze Mode using Custom Config Files
+
+jobs:
+  test-falco:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Start Falco
+      uses: darryk10/falco-action/start@ddcff83af077b30af70f188ba7b5446c98041446
+      with:
+        mode: analyze
+        config-file: '${{ github.workspace }}/test/config-files/syscall_ignore_test.config'
+        verbose: true
+
+    - name: Overwrite Source Code
+      shell: bash
+      run: |
+        echo "pwned" > ${{ github.workspace }}/pwn.txt
+    
+    - name: Read Sensitive File
+      run: |
+        sleep 3
+        docker run --rm --privileged ubuntu cat /etc/shadow
+        sleep 3
+
+    - name: Stop Falco
+      uses: darryk10/falco-action/stop@ddcff83af077b30af70f188ba7b5446c98041446
+      with:
+        mode: analyze
+        verbose: true
+
+  analyze:
+    runs-on: ubuntu-latest
+    needs: test-falco
+    permissions:
+      contents: read
+      actions: read
+    steps:
+    - name: Analyze
+      uses: darryk10/falco-action/analyze@ddcff83af077b30af70f188ba7b5446c98041446
+      with:
+        custom-rule-file: '${{ github.workspace }}/rules/falco_cicd_rules.yaml'
+        falco-version: '0.39.0'
+        filters-config: '${{ github.workspace }}/test/config-files/filters_test.config'
