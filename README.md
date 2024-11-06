@@ -102,6 +102,25 @@ jobs:
         falco-version: '0.39.0'
 ```
 
+### External Dependencies 
+Analyze mode currently supports two main external dependencies:
+- OpenAI - Using OpenAI you can generate an understanble summary report and customise it on your needs.
+- VirusTotal - Using VirusTotal you can get the reputation of IPs and Hashes found during the run
+
+#### Example
+```yaml
+    steps:
+    - name: Analyze
+      uses: darryk10/falco-action/analyze@ddcff83af077b30af70f188ba7b5446c98041446
+      with:
+        falco-version: '0.39.0'
+        openai-user-prompt: "Pls add remediation steps"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        VT_API_KEY: ${{ secrets.VT_API_KEY }}
+```
+
 
 
 
