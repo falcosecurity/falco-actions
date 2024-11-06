@@ -4,7 +4,10 @@ author: 'The Falco Authors'
 inputs:
   mode: 
     description: 'Start action with a mode. Can be live or analyze'
-    type: string
+    type: choice
+    options:
+      - live
+      - analyze
     required: false
     default: 'live'
   falco-version: 
@@ -30,13 +33,6 @@ inputs:
 runs:
   using: 'composite'
   steps:
-  - name: Validate mode
-    shell: bash
-    run: |
-      if [[ "${{ inputs.mode }}" != "live" && "${{ inputs.mode }}" != "analyze" ]]; then
-        echo "Invalid mode. Must be either live or analyze"
-        exit 1
-      fi
   - name: Start Falco
     if: ${{ inputs.mode == 'live' }}
     shell: bash

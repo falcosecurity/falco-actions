@@ -4,6 +4,10 @@ author: 'The Falco Authors'
 inputs:
   mode:
     description: 'Stop action with a mode. Can be live or analyze'
+    type: choice
+    options:
+      - live
+      - analyze
     required: false
     default: 'live'
   verbose:
@@ -13,14 +17,6 @@ inputs:
 runs:
   using: 'composite'
   steps:
-  - name: Validate mode
-    shell: bash
-    run: |
-      if [[ "${{ inputs.mode }}" != "live" && "${{ inputs.mode }}" != "analyze" ]]; then
-        echo "Invalid mode. Must be either live or analyze"
-        exit 1
-      fi
-  
   - name: Stop Falco or Sysdig containers
     shell: bash
     continue-on-error: true
