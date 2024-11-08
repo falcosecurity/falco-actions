@@ -35,18 +35,22 @@ runs:
   steps:
   - name: Start Falco
     if: ${{ inputs.mode == 'live' }}
+    env:
+      VERBOSE: ${{ inputs.verbose }}
+      FALCO_VERSION: ${{ inputs.falco-version }}
+      CUSTOM_RULE_FILE: ${{ inputs.custom-rule-file }}
     shell: bash
     run: |
-      if [[ "${{ inputs.verbose }}" == "true" ]]; then
+      if [[ "$VERBOSE" == "true" ]]; then
         set -x
       fi
 
       MOUNT_CUSTOM_RULE=""
-      if [[ -f "${{inputs.custom-rule-file}}" ]]; then
-        if [ "${{ inputs.verbose }}" = "true" ]; then
-          echo "Loading custom rules from ${{inputs.custom-rule-file}}"
+      if [[ -f "$CUSTOM_RULE_FILE" ]]; then
+        if [ "$VERBOSE" = "true" ]; then
+          echo "Loading custom rules from $CUSTOM_RULE_FILE"
         fi
-        MOUNT_CUSTOM_RULE="-v ${{inputs.custom-rule-file}}:/etc/falco/rules.d/custom_rules.yaml"
+        MOUNT_CUSTOM_RULE="-v $CUSTOM_RULE_FILE:/etc/falco/rules.d/custom_rules.yaml"
       fi
 
       docker run --rm -d \
@@ -57,7 +61,7 @@ runs:
         -v /proc:/host/proc:ro \
         -v /etc:/host/etc:ro \
         $MOUNT_CUSTOM_RULE \
-        falcosecurity/falco-no-driver:${{ inputs.falco-version }} falco -o "json_output=true" -o "file_output.enabled=true" -o "file_output.keep_alive=false" -o "file_output.filename=/tmp/falco_events.json" -o "engine.kind=modern_ebpf"
+        falcosecurity/falco-no-driver:$FALCO_VERSION falco -o "json_output=true" -o "file_output.enabled=true" -o "file_output.keep_alive=false" -o "file_output.filename=/tmp/falco_events.json" -o "engine.kind=modern_ebpf"
 
       # Wait for the Falco container to be fully started
       for i in {1..30}; do
@@ -76,30 +80,30 @@ runs:
   
   - name: Start Sysdig capture
     if: ${{ inputs.mode == 'analyze' }}
+    env:
+      VERBOSE: ${{ inputs.verbose }}
+      CONFIG_FILE: ${{ inputs.config-file }}
     shell: bash
     run: |
-      if [[ "${{ inputs.verbose }}" == "true" ]]; then
+      if [[ "$VERBOSE" == "true" ]]; then
         set -x
       fi
 
       IGNORE_FILTER_FOLDER=${{github.action_path}}/src
       
-
-      if [ "${{ inputs.config-file }}" != "src/syscall_ignore.config" ]; then
-        echo "Using custom config"
-        CONFIG_FILE=${{ inputs.config-file }}
+      if [ "$CONFIG_FILE" != "src/syscall_ignore.config" ]; then
+        echo "Using custom config file $CONFIG_FILE"
       else
         echo "Using default config"
-        CONFIG_FILE="${{github.action_path}}/${{inputs.config-file}}"
+        CONFIG_FILE="${{github.action_path}}/$CONFIG_FILE"
       fi
 
       if [ ! -e "$CONFIG_FILE" ]; then
-        echo "Config File does not exist."
-        echo $CONFIG_FILE
+        echo "Config file $CONFIG_FILE does not exist."
         exit 1
       fi
 
-      if [[ "${{ inputs.verbose }}" == "true" ]]; then
+      if [[ "$VERBOSE" == "true" ]]; then
         echo "Config File:"
         cat $CONFIG_FILE
       fi
@@ -107,7 +111,7 @@ runs:
       echo "Creating ignore filters"
       IGNORE_SYSCALLS_FILTER="and not evt.type in ( $(jq -r -f $IGNORE_FILTER_FOLDER/ignore_syscalls.jq $CONFIG_FILE) ) "
 
-      if [[ "${{ inputs.verbose }}" == "true" ]]; then
+      if [[ "$VERBOSE" == "true" ]]; then
         echo "Ignored Syscalls:"
         echo $IGNORE_SYSCALLS_FILTER
       fi
@@ -139,7 +143,7 @@ runs:
         exit 1
       fi
 
-      if [[ "${{ inputs.verbose }}" == "true" ]]; then
+      if [[ "$VERBOSE" == "true" ]]; then
         docker ps -a
         docker logs sysdig
       fi
