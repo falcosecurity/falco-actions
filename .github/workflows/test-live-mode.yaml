@@ -11,7 +11,7 @@ jobs:
       actions: read
     steps:
     - name: Start Falco
-      uses: darryk10/falco-action/start@5e0ba030dc661da9641c3206c35f1a29e85259a2
+      uses: darryk10/falco-action/start@dbd1251c3b5e2aef470b1e08b883629ee53ab373
       with:
         mode: live
         falco-version: '0.39.0'
@@ -27,7 +27,7 @@ jobs:
         sleep 3
 
     - name: Stop Falco
-      uses: darryk10/falco-action/stop@5e0ba030dc661da9641c3206c35f1a29e85259a2
+      uses: darryk10/falco-action/stop@dbd1251c3b5e2aef470b1e08b883629ee53ab373
       with:
         mode: live
         verbose: true
@@ -39,7 +39,7 @@ jobs:
       actions: read
     steps:
     - name: Start Falco
-      uses: darryk10/falco-action/start@5e0ba030dc661da9641c3206c35f1a29e85259a2
+      uses: darryk10/falco-action/start@dbd1251c3b5e2aef470b1e08b883629ee53ab373
       with:
         mode: live
         falco-version: '0.39.0'
@@ -57,7 +57,7 @@ jobs:
         sleep 3
 
     - name: Stop Falco
-      uses: darryk10/falco-action/stop@5e0ba030dc661da9641c3206c35f1a29e85259a2
+      uses: darryk10/falco-action/stop@dbd1251c3b5e2aef470b1e08b883629ee53ab373
       with:
         mode: live
         verbose: true
