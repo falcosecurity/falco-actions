@@ -36,7 +36,7 @@ jobs:
       actions: read
     steps:
     - name: Start Falco
-      uses: falcosecurity/falco-action/start@<commit-sha>
+      uses: falcosecurity/falco-actions/start@<commit-sha>
       with:
         mode: live
         falco-version: '0.39.0'
@@ -47,7 +47,7 @@ jobs:
     # ...
 
     - name: Stop Falco
-      uses: falcosecurity/falco-action/stop@<commit-sha>
+      uses: falcosecurity/falco-actions/stop@<commit-sha>
       with:
         mode: live
         verbose: true
@@ -133,7 +133,7 @@ jobs:
       actions: read
     steps:
     - name: Start Falco
-      uses: falcosecurity/falco-action/start@<commit-sha>
+      uses: falcosecurity/falco-actions/start@<commit-sha>
       with:
         mode: analyze
         
@@ -142,7 +142,7 @@ jobs:
     # ...
 
     - name: Stop Falco
-      uses: falcosecurity/falco-action/stop@<commit-sha>
+      uses: falcosecurity/falco-actions/stop@<commit-sha>
       with:
         mode: analyze
   
@@ -153,7 +153,7 @@ jobs:
       actions: read
     steps:
     - name: Analyze
-      uses: falcosecurity/falco-action/analyze@<commit-sha>
+      uses: falcosecurity/falco-actions/analyze@<commit-sha>
       with:
         falco-version: '0.39.0'
 ```
@@ -233,7 +233,7 @@ Analyze action currently accepts the following inputs for external dependencies:
 ```yaml
     steps:
     - name: Analyze
-      uses: falcosecurity/falco-action/analyze@<commit-sha>
+      uses: falcosecurity/falco-actions/analyze@<commit-sha>
       with:
         falco-version: '0.39.0'
         openai-user-prompt: "Pls add remediation steps"
