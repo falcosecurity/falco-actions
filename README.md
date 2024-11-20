@@ -1,4 +1,8 @@
-# Falco Action
+# Falco Actions
+
+[![Falco Ecosystem Repository](https://raw.githubusercontent.com/falcosecurity/evolution/refs/heads/main/repos/badges/falco-ecosystem-blue.svg)](https://github.com/falcosecurity/evolution/blob/main/REPOSITORIES.md#ecosystem-scope) [![Standbox](https://img.shields.io/badge/status-sandbox-orange?style=for-the-badge)](https://github.com/falcosecurity/evolution/blob/main/REPOSITORIES.md#sandbox)
+![licence](https://img.shields.io/github/license/falcosecurity/falco-actions?style=for-the-badge)
+[![Last Release](https://img.shields.io/github/v/release/falcosecurity/falco-actions?style=for-the-badge)](https://github.com/falcosecurity/falco-actions/releases/latest)
 
 Run [Falco](https://github.com/falcosecurity/falco) in a GitHub Action to detect suspicious behavior in your CI/CD workflows. 
 
