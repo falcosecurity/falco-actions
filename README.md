@@ -4,9 +4,9 @@
 ![licence](https://img.shields.io/github/license/falcosecurity/falco-actions?style=for-the-badge)
 [![Last Release](https://img.shields.io/github/v/release/falcosecurity/falco-actions?style=for-the-badge)](https://github.com/falcosecurity/falco-actions/releases/latest)
 
-Run [Falco](https://github.com/falcosecurity/falco) in a GitHub Action to detect suspicious behavior in your CI/CD workflows. 
+Run [Falco](https://github.com/falcosecurity/falco) in GitHub Actions to detect suspicious behavior in your CI/CD workflows. 
 
-This GitHub Action can be used to monitor your GitHub runner and detect Software Supply Chain attacks thanks to ad-hoc Falco rules specific to this use case.
+These GitHub Actions can be used to monitor your GitHub runner and detect Software Supply Chain attacks thanks to ad-hoc Falco rules specific to this use case.
 
 The repository is home of three GitHub Actions, namely `start`, `stop` and `analyze`. We currently support two modes of operation:
 
@@ -15,7 +15,7 @@ The repository is home of three GitHub Actions, namely `start`, `stop` and `anal
 
 Let's delve into their details.
 
-> Note: we recommend users to always pin the dependencies of this GitHub Action to ensure the use of an immutable release
+> Note: we recommend users to always pin the dependencies of these GitHub Actions to ensure the use of an immutable release
 
 
 ## Live mode
@@ -248,7 +248,22 @@ Analyze action currently accepts the following inputs for external dependencies:
         VT_API_KEY: ${{ secrets.VT_API_KEY }}
 ```
 
+## Join the Community
 
+To get involved with The Falco Project, please visit [the community repository](https://github.com/falcosecurity/community) to find out more.
+
+How to reach out?
+
+ - Join the [#falco](https://kubernetes.slack.com/messages/falco) channel on the [Kubernetes Slack](https://slack.k8s.io)
+ - [Join the Falco mailing list](https://lists.cncf.io/g/cncf-falco-dev)
+
+## Reporting security vulnerabilities
+
+Please report security vulnerabilities following the community process documented [here](https://github.com/falcosecurity/.github/blob/master/SECURITY.md).
+
+## License Terms
+
+This project is licensed to you under the [Apache 2.0](./LICENSE) open source license.
 
 
 
