@@ -14,7 +14,7 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Start Falco
-      uses: darryk10/falco-action/start@main
+      uses: falcosecurity/falco-actions/start@main
       with:
         mode: analyze
         config-file: '${{ github.workspace }}/test/config-files/syscall_ignore_test.config'
@@ -32,7 +32,7 @@ jobs:
         sleep 3
 
     - name: Stop Falco
-      uses: darryk10/falco-action/stop@main
+      uses: falcosecurity/falco-actions/stop@main
       with:
         mode: analyze
         verbose: true
@@ -47,7 +47,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
     - name: Analyze
-      uses: darryk10/falco-action/analyze@main
+      uses: falcosecurity/falco-actions/analyze@main
       with:
         custom-rule-file: '${{ github.workspace }}/rules/falco_cicd_rules.yaml'
         falco-version: '0.39.0'
