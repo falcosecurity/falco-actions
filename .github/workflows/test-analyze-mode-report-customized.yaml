@@ -14,7 +14,7 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Start Falco
-      uses: darryk10/falco-action/start@ddcff83af077b30af70f188ba7b5446c98041446
+      uses: falcosecurity/falco-actions/start@ddcff83af077b30af70f188ba7b5446c98041446
       with:
         mode: analyze
         verbose: true
@@ -31,7 +31,7 @@ jobs:
         sleep 3
 
     - name: Stop Falco
-      uses: darryk10/falco-action/stop@ddcff83af077b30af70f188ba7b5446c98041446
+      uses: falcosecurity/falco-actions/stop@ddcff83af077b30af70f188ba7b5446c98041446
       with:
         mode: analyze
         verbose: true
@@ -44,7 +44,7 @@ jobs:
       actions: read
     steps:
     - name: Analyze
-      uses: darryk10/falco-action/analyze@ddcff83af077b30af70f188ba7b5446c98041446
+      uses: falcosecurity/falco-actions/analyze@ddcff83af077b30af70f188ba7b5446c98041446
       with:
         falco-version: '0.39.0'
         extract-written-files: true
