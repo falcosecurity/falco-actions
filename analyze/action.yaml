@@ -277,10 +277,10 @@ runs:
         set -x
       fi
       python3 -m pip install -r ${{github.action_path}}/../common/requirements.txt
+      echo "# Report Details" >> /tmp/report_output.md
       # Falco events
       if [[ -s /tmp/falco_events.json ]]; then
         echo "Printing triggered rules in Job summary"
-        echo "# Report Details" >> /tmp/report_output.md
         echo "## Falco Events" >> /tmp/report_output.md
         content=$(python3 ${{github.action_path}}/../common/falco_events_to_md.py /tmp/falco_events.json /tmp/steps.json)
         echo "$content" >> /tmp/report_output.md
@@ -364,6 +364,7 @@ runs:
         else
           python3 ${{github.action_path}}/src/integrations/openai/create_summary.py /tmp/report_output.md --model "${{inputs.openai-model}}" --user_input "${{inputs.openai-user-prompt}}" >> /tmp/report_openai.md
         fi
+        echo "" >> /tmp/report_openai.md
         cat /tmp/report_output.md >> /tmp/report_openai.md
         mv /tmp/report_openai.md /tmp/report_output.md
       fi
