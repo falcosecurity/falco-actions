@@ -355,15 +355,17 @@ runs:
       # If OpenAI API key is set, create a brief summary using OpenAI
       if ${{ env.OPENAI_API_KEY != '' }}; then
         echo "Creating Report Summary using OpenAI"
-        echo "# Report Summary" >> $GITHUB_STEP_SUMMARY
+        echo "# Report Summary" >> /tmp/report_openai.md
         echo "Installing python dependencies"
         python3 -m pip install -r ${{github.action_path}}/src/integrations/openai/requirements.txt
         echo "Calling OpenAI APIs for summary"
         if ${{inputs.openai-user-prompt == ''}}; then
-          python3 ${{github.action_path}}/src/integrations/openai/create_summary.py /tmp/report_output.md --model "${{inputs.openai-model}}" >> $GITHUB_STEP_SUMMARY
+          python3 ${{github.action_path}}/src/integrations/openai/create_summary.py /tmp/report_output.md --model "${{inputs.openai-model}}" >> /tmp/report_openai.md
         else
-          python3 ${{github.action_path}}/src/integrations/openai/create_summary.py /tmp/report_output.md --model "${{inputs.openai-model}}" --user_input "${{inputs.openai-user-prompt}}" >> $GITHUB_STEP_SUMMARY
+          python3 ${{github.action_path}}/src/integrations/openai/create_summary.py /tmp/report_output.md --model "${{inputs.openai-model}}" --user_input "${{inputs.openai-user-prompt}}" >> /tmp/report_openai.md
         fi
+        cat /tmp/report_output.md >> /tmp/report_openai.md
+        mv /tmp/report_openai.md /tmp/report_output.md
       fi
 
       echo "Appending report to github summary"
