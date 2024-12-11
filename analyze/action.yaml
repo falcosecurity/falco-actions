@@ -95,7 +95,7 @@ runs:
         echo "config_file=${{ inputs.filters-config }}" >> $GITHUB_OUTPUT
       else
         echo "Using default config"
-        echo "config_file=${{github.action_path}}/${{inputs.config-file}}" >> $GITHUB_OUTPUT
+        echo "config_file=${{github.action_path}}/${{inputs.filters-config}}" >> $GITHUB_OUTPUT
       fi
 
 
