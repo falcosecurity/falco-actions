@@ -299,13 +299,13 @@ runs:
 
       # Containers
       if [[ -s /tmp/containers.txt ]]; then
-        echo "# Containers" >> /tmp/report_output.md
+        echo "## Containers" >> /tmp/report_output.md
         python3 ${{github.action_path}}/src/json_to_md.py /tmp/containers.txt >> /tmp/report_output.md
       fi
 
       # Hashes
       if [[ -s /tmp/hashes.txt ]]; then
-        echo "# Executable Hashes" >> /tmp/report_output.md
+        echo "## Executable Hashes" >> /tmp/report_output.md
         if ${{ env.VT_API_KEY != '' }}; then
           echo "Querying VirusTotal for hashes"
           python3 ${{github.action_path}}/src/integrations/virustotal/vt_script.py /tmp/hashes.txt --mode hashes >> /tmp/hashes_vt.txt
