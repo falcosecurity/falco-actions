@@ -61,6 +61,11 @@ inputs:
     type: string
     default: ''
     required: false
+  verbose:
+    description: 'Enable verbose logs'
+    type: boolean
+    required: false
+    default: false
 runs:
   using: 'composite'
   steps:
