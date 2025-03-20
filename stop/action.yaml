@@ -88,17 +88,6 @@ runs:
         content=$(python3 $ACTION_PATH/../common/falco_events_to_md.py /tmp/falco_events.json /tmp/steps.json)
         echo "$content" >> /tmp/report_output.md
         cat /tmp/report_output.md
-      
-        # Create PR comment with triggered rules, else append to summary
-        if ${{ github.event_name == 'pull_request' }}; then
-          echo "Creating PR comment with triggered signatures"
-          FILE_CONTENT=$(echo "$content" | sed 's/\\/\\\\/g' | sed ':a;N;$!ba;s/\n/\\n/g')
-          curl -X POST \
-            -H "Authorization: token $GITHUB_TOKEN" \
-            -H "Content-Type: application/json" \
-            -d "{\"body\": \"***Falco Rules*** \\n\\n ${FILE_CONTENT} \\n\\n Find out more at https://github.com/$REPO/actions/runs/$RUN_ID\"}" \
-            https://api.github.com/repos/$OWNER/$REPO/issues/$PULL_REQUEST_NUMBER/comments
-        fi
         cat /tmp/report_output.md >> $GITHUB_STEP_SUMMARY
       fi
   
