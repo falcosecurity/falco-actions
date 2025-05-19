@@ -1,0 +1,54 @@
+name: The name of your action here
+description: Provide a description here
+author: Your name or organization here
+
+# Add your action's branding here. This will appear on the GitHub Marketplace.
+branding:
+  icon: heart
+  color: red
+
+# Define your inputs here.
+inputs:
+  mode:
+    description: 'Start action with a mode. Can be live or analyze'
+    type: choice
+    options:
+      - live
+      - analyze
+    required: false
+    default: 'live'
+  falco-version:
+    description: 'Falco version to use'
+    type: string
+    required: false
+    default: 'latest'
+  config-file:
+    description: 'Start action with a config file. Only used in analyze mode'
+    type: string
+    required: false
+    default: 'filters/syscall_ignore.config'
+  custom-rule-file:
+    description: 'Custom rule file'
+    type: string
+    default: ''
+    required: false
+  cicd-rules:
+    description: 'Load the default CICD rulesn from the Falco community'
+    type: boolean
+    required: false
+    default: true
+  verbose:
+    description: 'Enable verbose logs'
+    type: boolean
+    required: false
+    default: false
+
+# Define your outputs here.
+outputs:
+  time:
+    description: Your output description here
+
+runs:
+  using: node20
+  main: dist/index.js
+  post: dist/index.js
