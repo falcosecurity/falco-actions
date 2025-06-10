@@ -77,6 +77,8 @@ def main(input_file, mode):
                 ioc = data.get("fd.sip")
             elif mode == "hashes":
                 ioc = data.get("sha256")
+            elif mode == "domains":
+                ioc = data.get("domain")
             else:
                 print("Mode not specified, exiting", file=sys.stderr)
                 exit(0)          
