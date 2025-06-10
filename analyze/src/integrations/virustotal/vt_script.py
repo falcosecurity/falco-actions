@@ -13,7 +13,7 @@ vt_api_url = 'https://www.virustotal.com/api/v3/'
 ip_reputation_data = {}
 
 
-def get_vt_ip_info(ip_address, vt_api_key, mode):
+def get_vt_ioc_info(ip_address, vt_api_key, mode):
     if mode == "ips":
         url = f"{vt_api_url}ip_addresses/{ip_address}"
     elif mode == "hashes":
@@ -41,7 +41,7 @@ def get_vt_ip_info(ip_address, vt_api_key, mode):
 def find_reputation(ioc,mode):
     if ioc:
         if ioc not in ip_reputation_data:
-            vt_info = get_vt_ip_info(ioc, vt_api_key, mode)
+            vt_info = get_vt_ioc_info(ioc, vt_api_key, mode)
             if vt_info:
                 malicious=vt_info.get('data', {}).get('attributes', {}).get('last_analysis_stats', {}).get('malicious', 'Unknown')
                 suspicious=vt_info.get('data', {}).get('attributes', {}).get('last_analysis_stats', {}).get('suspicious', 'Unknown')
