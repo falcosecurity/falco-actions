@@ -13,13 +13,13 @@ vt_api_url = 'https://www.virustotal.com/api/v3/'
 ioc_reputation_data = {}
 
 
-def get_vt_ioc_info(ip_address, vt_api_key, mode):
+def get_vt_ioc_info(target, vt_api_key, mode):
     if mode == "ips":
-        url = f"{vt_api_url}ip_addresses/{ip_address}"
+        url = f"{vt_api_url}ip_addresses/{target}"
     elif mode == "hashes":
-        url = f"{vt_api_url}files/{ip_address}"
+        url = f"{vt_api_url}files/{target}"
     elif mode == "domains":
-        url = f"{vt_api_url}domains/{ip_address}"
+        url = f"{vt_api_url}domains/{target}"
     else:
         print("Mode not specified", file=sys.stderr)
         exit(0)
