@@ -329,8 +329,8 @@ runs:
         echo "## Contacted DNS Domains" >> /tmp/report_output.md
         if ${{ env.VT_API_KEY != '' }}; then
           echo "Querying VirusTotal for Contacted DNS Domains"
-          python3 ${{github.action_path}}/src/integrations/virustotal/vt_script.py /tmp/dns_extract_json.txt --mode domains >> /tmp/outbound_vt.txt
-          python3 ${{github.action_path}}/src/json_to_md.py /tmp/dns_extract_json.txt >> /tmp/report_output.md
+          python3 ${{github.action_path}}/src/integrations/virustotal/vt_script.py /tmp/dns_extract_json.txt --mode domains >> /tmp/dns_extract_json_vt.txt
+          python3 ${{github.action_path}}/src/json_to_md.py /tmp/dns_extract_json_vt.txt >> /tmp/report_output.md
         else
           python3 ${{github.action_path}}/src/json_to_md.py /tmp/dns_extract_json.txt >> /tmp/report_output.md
         fi
