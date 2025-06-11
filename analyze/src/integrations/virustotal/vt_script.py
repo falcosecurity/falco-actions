@@ -10,14 +10,16 @@ vt_api_url = 'https://www.virustotal.com/api/v3/'
 ##### END OF SET UP #####
 
 #### INITIALIZE API FUNCTIONS #####
-ip_reputation_data = {}
+ioc_reputation_data = {}
 
 
-def get_vt_ip_info(ip_address, vt_api_key, mode):
+def get_vt_ioc_info(target, vt_api_key, mode):
     if mode == "ips":
-        url = f"{vt_api_url}ip_addresses/{ip_address}"
+        url = f"{vt_api_url}ip_addresses/{target}"
     elif mode == "hashes":
-        url = f"{vt_api_url}files/{ip_address}"
+        url = f"{vt_api_url}files/{target}"
+    elif mode == "domains":
+        url = f"{vt_api_url}domains/{target}"
     else:
         print("Mode not specified", file=sys.stderr)
         exit(0)
@@ -40,22 +42,22 @@ def get_vt_ip_info(ip_address, vt_api_key, mode):
 
 def find_reputation(ioc,mode):
     if ioc:
-        if ioc not in ip_reputation_data:
-            vt_info = get_vt_ip_info(ioc, vt_api_key, mode)
+        if ioc not in ioc_reputation_data:
+            vt_info = get_vt_ioc_info(ioc, vt_api_key, mode)
             if vt_info:
                 malicious=vt_info.get('data', {}).get('attributes', {}).get('last_analysis_stats', {}).get('malicious', 'Unknown')
                 suspicious=vt_info.get('data', {}).get('attributes', {}).get('last_analysis_stats', {}).get('suspicious', 'Unknown')
                 if malicious < 3 and suspicious < 3:
-                    ip_reputation_data[ioc]="Clean"
+                    ioc_reputation_data[ioc]="Clean"
                     return "Clean"
                 else:
-                    ip_reputation_data[ioc]="Suspicious"
+                    ioc_reputation_data[ioc]="Suspicious"
                     return "Suspicious"
             else:
-                ip_reputation_data[ioc]="Unknown"
+                ioc_reputation_data[ioc]="Unknown"
                 return "Unknown"
         else:
-            return ip_reputation_data[ioc]
+            return ioc_reputation_data[ioc]
     else:
         print("No IoC found", file=sys.stderr)
         exit(0)
@@ -75,6 +77,8 @@ def main(input_file, mode):
                 ioc = data.get("fd.sip")
             elif mode == "hashes":
                 ioc = data.get("sha256")
+            elif mode == "domains":
+                ioc = data.get("domain")
             else:
                 print("Mode not specified, exiting", file=sys.stderr)
                 exit(0)          
