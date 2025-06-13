@@ -15,6 +15,11 @@ inputs:
     type: string
     required: false
     default: 'latest'
+  sysdig-version: 
+    description: 'Falco version to use'
+    type: string
+    required: false
+    default: 'latest'
   config-file:
     description: 'Start action with a config file. Only used in analyze mode'
     type: string
@@ -96,6 +101,7 @@ runs:
     env:
       VERBOSE: ${{ inputs.verbose }}
       CONFIG_FILE: ${{ inputs.config-file }}
+      SYSDIG_VERSION: ${{ inputs.sysdig-version }}
     shell: bash
     run: |
       if [[ "$VERBOSE" == "true" ]]; then
@@ -137,7 +143,7 @@ runs:
         -v /lib/modules:/host/lib/modules:ro \
         -v /usr:/host/usr:ro \
         -v /tmp:/tmp \
-        --net=host sysdig/sysdig:latest sysdig --modern-bpf -w /tmp/capture.scap --snaplen=256 "not evt.type in (switch) $IGNORE_SYSCALLS_FILTER"
+        --net=host sysdig/sysdig:$SYSDIG_VERSION sysdig --modern-bpf -w /tmp/capture.scap --snaplen=256 "not evt.type in (switch) $IGNORE_SYSCALLS_FILTER"
       echo "Sysdig started"
 
       # Ensure Sysdig container is running
