@@ -70,6 +70,14 @@ runs:
         MOUNT_CICD_DEFAULT_RULES="-v ${{github.action_path}}/rules/falco_cicd_rules.yaml:/etc/falco/rules.d/cicd_rules.yaml"
       fi
 
+      IMAGE="falcosecurity/falco-no-driver"
+      # If the version string starts with "sha256:", use @digest syntax
+      if [[ "$FALCO_VERSION" =~ ^sha256: ]]; then
+        FULL_IMAGE="${IMAGE}@${FALCO_VERSION}"
+      else
+        FULL_IMAGE="${IMAGE}:${FALCO_VERSION}"
+      fi
+
       docker run --rm -d \
         --name falco \
         --privileged \
@@ -79,7 +87,7 @@ runs:
         -v /etc:/host/etc:ro \
         $MOUNT_CUSTOM_RULE \
         $MOUNT_CICD_DEFAULT_RULES \
-        falcosecurity/falco-no-driver:$FALCO_VERSION falco -o "json_output=true" -o "file_output.enabled=true" -o "file_output.keep_alive=false" -o "file_output.filename=/tmp/falco_events.json" -o "engine.kind=modern_ebpf"
+        "$FULL_IMAGE" falco -o "json_output=true" -o "file_output.enabled=true" -o "file_output.keep_alive=false" -o "file_output.filename=/tmp/falco_events.json" -o "engine.kind=modern_ebpf"
 
       # Wait for the Falco container to be fully started
       for i in {1..30}; do
@@ -135,6 +143,14 @@ runs:
         echo $IGNORE_SYSCALLS_FILTER
       fi
 
+        IMAGE="sysdig/sysdig"
+        # If the version string starts with "sha256:", use @digest syntax
+        if [[ "$SYSDIG_VERSION" =~ ^sha256: ]]; then
+          FULL_IMAGE="${IMAGE}@${SYSDIG_VERSION}"
+        else
+          FULL_IMAGE="${IMAGE}:${SYSDIG_VERSION}"
+        fi
+
       echo "Creating Sysdig container"
       docker run --rm -d --name sysdig --privileged \
         -v /var/run/docker.sock:/host/var/run/docker.sock \
@@ -143,7 +159,7 @@ runs:
         -v /lib/modules:/host/lib/modules:ro \
         -v /usr:/host/usr:ro \
         -v /tmp:/tmp \
-        --net=host sysdig/sysdig:$SYSDIG_VERSION sysdig --modern-bpf -w /tmp/capture.scap --snaplen=256 "not evt.type in (switch) $IGNORE_SYSCALLS_FILTER"
+        --net=host "$FULL_IMAGE" sysdig --modern-bpf -w /tmp/capture.scap --snaplen=256 "not evt.type in (switch) $IGNORE_SYSCALLS_FILTER"
       echo "Sysdig started"
 
       # Ensure Sysdig container is running
