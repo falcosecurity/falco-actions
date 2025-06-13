@@ -16,7 +16,7 @@ inputs:
     required: false
     default: 'latest'
   sysdig-version: 
-    description: 'Falco version to use'
+    description: 'Sysdig version to use'
     type: string
     required: false
     default: 'latest'
