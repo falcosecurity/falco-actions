@@ -2,63 +2,107 @@
 
 - rule: Source Code Overwrite
   desc: >
-    Detect the overwrite of source code during a build process. To be enabled only on workflows job that requires it.
-    The rule is based on the assumption that the common directory for checking out the repository is "/hom/runner/work/"
+    Detect the overwrite of source code during a build process. To be enabled
+    only on workflows job that requires it. The rule is based on the assumption
+    that the common directory for checking out the repository is
+    "/hom/runner/work/"
   condition: >
     open_write and fd.directory startswith "/home/runner/work/"
   exceptions:
-  - name: proc_exepath_fd_directory
-    fields: [proc.exepath, fd.directory]
-    comps: [endswith, startswith]
-    values:
-    - ["Runner.Worker", "/home/runner/work/_temp"]
-  output: A source code file %fd.name was overwritten by process %proc.name (file=%fd.name gparent=%proc.aname[2] ggparent=%proc.aname[3] gggparent=%proc.aname[4] evt_type=%evt.type user=%user.name user_uid=%user.uid user_loginuid=%user.loginuid process=%proc.name proc_exepath=%proc.exepath parent=%proc.pname command=%proc.cmdline terminal=%proc.tty container_id=%container.id container_name=%container.name container_image=%container.image.repository container_image_tag=%container.image.tag)
+    - name: proc_exepath_fd_directory
+      fields: [proc.exepath, fd.directory]
+      comps: [endswith, startswith]
+      values:
+        - ['Runner.Worker', '/home/runner/work/_temp']
+  output:
+    A source code file %fd.name was overwritten by process %proc.name
+    (file=%fd.name gparent=%proc.aname[2] ggparent=%proc.aname[3]
+    gggparent=%proc.aname[4] evt_type=%evt.type user=%user.name
+    user_uid=%user.uid user_loginuid=%user.loginuid process=%proc.name
+    proc_exepath=%proc.exepath parent=%proc.pname command=%proc.cmdline
+    terminal=%proc.tty %container.info)
   priority: WARNING
   tags: [CI/CD]
 
 - rule: Possible Workflow File Overwrite
   desc: >
-    Detect the overwrite of a workflow file. To be enabled only where the job is not expected to change workflow files.
-    The rule is based on the assumption that the common directory for checking out the repository is "/hom/runner/work/"
+    Detect the overwrite of a workflow file. To be enabled only where the job is
+    not expected to change workflow files. The rule is based on the assumption
+    that the common directory for checking out the repository is
+    "/hom/runner/work/"
   condition: >
-    open_write and fd.directory startswith "/home/runner/work/" and fd.name contains ".github/workflows/"
-  output: A source code file %fd.name was overwritten by process %proc.name (file=%fd.name gparent=%proc.aname[2] ggparent=%proc.aname[3] gggparent=%proc.aname[4] evt_type=%evt.type user=%user.name user_uid=%user.uid user_loginuid=%user.loginuid process=%proc.name proc_exepath=%proc.exepath parent=%proc.pname command=%proc.cmdline terminal=%proc.tty container_image=%container.image.repository)
+    open_write and fd.directory startswith "/home/runner/work/" and fd.name
+    contains ".github/workflows/"
+  output:
+    A source code file %fd.name was overwritten by process %proc.name
+    (file=%fd.name gparent=%proc.aname[2] ggparent=%proc.aname[3]
+    gggparent=%proc.aname[4] evt_type=%evt.type user=%user.name
+    user_uid=%user.uid user_loginuid=%user.loginuid process=%proc.name
+    proc_exepath=%proc.exepath parent=%proc.pname command=%proc.cmdline
+    terminal=%proc.tty container_image=%container.image.repository)
   priority: WARNING
   tags: [CI/CD]
 
 - rule: Git Pushing to Repository
   desc: >
-    Detect the use of git tool to push to a repository. To be enabled only where the job is not expected to push any repository.
+    Detect the use of git tool to push to a repository. To be enabled only where
+    the job is not expected to push any repository.
   condition: >
     spawned_process and proc.name="git" and proc.cmdline contains "push"
-  output: A process %proc.name is pushing to a repository (process=%proc.name proc_exepath=%proc.exepath gparent=%proc.aname[2] ggparent=%proc.aname[3] gggparent=%proc.aname[4] command=%proc.cmdline terminal=%proc.tty container_image=%container.image.repository)
+  output:
+    A process %proc.name is pushing to a repository (process=%proc.name
+    proc_exepath=%proc.exepath gparent=%proc.aname[2] ggparent=%proc.aname[3]
+    gggparent=%proc.aname[4] command=%proc.cmdline terminal=%proc.tty
+    container_image=%container.image.repository)
   priority: WARNING
   tags: [CI/CD]
 
 - rule: Process Reading Environment Variables of Others
   desc: >
-    Detect a process reading environment variables of other processes. Sensitive information can be stored by means of environment variables, and this could be a step prior to exfiltration.
+    Detect a process reading environment variables of other processes. Sensitive
+    information can be stored by means of environment variables, and this could
+    be a step prior to exfiltration.
   condition: >
-    open_read and fd.name startswith "/proc/" and fd.name endswith "/environ" and not fd.name contains "/self/"
-  output: A process %proc.name with pid %proc.pid is reading environment variables or secrets of other processes (file=%fd.name process=%proc.name proc_exepath=%proc.exepath gparent=%proc.aname[2] ggparent=%proc.aname[3] gggparent=%proc.aname[4] command=%proc.cmdline terminal=%proc.tty container_image=%container.image.repository)
+    open_read and fd.name startswith "/proc/" and fd.name endswith "/environ"
+    and not fd.name contains "/self/"
+  output:
+    A process %proc.name with pid %proc.pid is reading environment variables or
+    secrets of other processes (file=%fd.name process=%proc.name
+    proc_exepath=%proc.exepath gparent=%proc.aname[2] ggparent=%proc.aname[3]
+    gggparent=%proc.aname[4] command=%proc.cmdline terminal=%proc.tty
+    container_image=%container.image.repository)
   priority: WARNING
   tags: [CI/CD]
 
 - rule: Process Dumping Memory of Others
   desc: >
-    Detect a process dumping memory of other processes. Sensitive information can be stored in memory, and this could be a step prior to exfiltration.
+    Detect a process dumping memory of other processes. Sensitive information
+    can be stored in memory, and this could be a step prior to exfiltration.
   condition: >
-    open_read and fd.name startswith "/proc/" and fd.name endswith "/mem" and not fd.name contains "/self/"
-  output: A process %proc.name with pid %proc.pid is dumping memory of other processes (file=%fd.name process=%proc.name proc_exepath=%proc.exepath gparent=%proc.aname[2] ggparent=%proc.aname[3] gggparent=%proc.aname[4] command=%proc.cmdline terminal=%proc.tty container_image=%container.image.repository)
+    open_read and fd.name startswith "/proc/" and fd.name endswith "/mem" and
+    not fd.name contains "/self/"
+  output:
+    A process %proc.name with pid %proc.pid is dumping memory of other processes
+    (file=%fd.name process=%proc.name proc_exepath=%proc.exepath
+    gparent=%proc.aname[2] ggparent=%proc.aname[3] gggparent=%proc.aname[4]
+    command=%proc.cmdline terminal=%proc.tty
+    container_image=%container.image.repository)
   priority: WARNING
   tags: [CI/CD]
 
 - rule: Suspicious Process Reading GitHub Token
   desc: >
-    Detect a process reading a GitHub token from the local git config. GitHub tokens are sensitive information that can be exfiltrated and used to access the repository.
+    Detect a process reading a GitHub token from the local git config. GitHub
+    tokens are sensitive information that can be exfiltrated and used to access
+    the repository.
   condition: >
-    open_read and fd.name startswith "/home/runner/work/.git" and fd.name contains "config" and not proc.name = "git"
-  output: A process %proc.name is reading GitHub token (file=%fd.name process=%proc.name proc_exepath=%proc.exepath gparent=%proc.aname[2] ggparent=%proc.aname[3] gggparent=%proc.aname[4] command=%proc.cmdline terminal=%proc.tty container_image=%container.image.repository)
+    open_read and fd.name startswith "/home/runner/work/.git" and fd.name
+    contains "config" and not proc.name = "git"
+  output:
+    A process %proc.name is reading GitHub token (file=%fd.name
+    process=%proc.name proc_exepath=%proc.exepath gparent=%proc.aname[2]
+    ggparent=%proc.aname[3] gggparent=%proc.aname[4] command=%proc.cmdline
+    terminal=%proc.tty container_image=%container.image.repository)
   priority: WARNING
   tags: [CI/CD]
 
@@ -66,13 +110,13 @@
   desc: >
     Detect the use of grep tool to search for GitHub secrets.
   condition: >
-    spawned_process and proc.name="grep" and 
-    (proc.cmdline contains "ghp_" or
-    proc.cmdline contains "gho_" or
-    proc.cmdline contains "ghu_" or
-    proc.cmdline contains "ghs_" or
-    proc.cmdline contains "ghr_")
-  output: Grep is searching for GitHub secrets (process=%proc.name proc_exepath=%proc.exepath gparent=%proc.aname[2] ggparent=%proc.aname[3] gggparent=%proc.aname[4] command=%proc.cmdline terminal=%proc.tty container_image=%container.image.repository)
+    spawned_process and proc.name="grep" and  (proc.cmdline contains "ghp_" or
+    proc.cmdline contains "gho_" or proc.cmdline contains "ghu_" or proc.cmdline
+    contains "ghs_" or proc.cmdline contains "ghr_")
+  output:
+    Grep is searching for GitHub secrets (process=%proc.name
+    proc_exepath=%proc.exepath gparent=%proc.aname[2] ggparent=%proc.aname[3]
+    gggparent=%proc.aname[4] command=%proc.cmdline terminal=%proc.tty
+    container_image=%container.image.repository)
   priority: WARNING
   tags: [CI/CD]
-
