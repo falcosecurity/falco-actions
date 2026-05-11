@@ -42,7 +42,7 @@ runs:
       VERBOSE: ${{ inputs.verbose }}
     run: |
       # If we are in live mode, we need to retrieve the job details to get the steps with timestamps
-      # This is useful to understand in which step the security event occured and requires to access the GitHub API
+      # This is useful to understand in which step the security event occurred and requires to access the GitHub API
       if [[ "$VERBOSE" == "true" ]]; then
         set -x
       fi
