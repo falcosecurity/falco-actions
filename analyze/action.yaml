@@ -205,7 +205,7 @@ runs:
         echo "Warning: No contacted DNS domains found"
         exit 0
       fi
-      cat /tmp/buffers.txt | grep -o -E "[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*(\.[a-zA-Z]{2,})" | grep -E -v "NULL" | grep -E -v "ns." | grep -E -v "\->" | grep -E -v "evt.buffer" | sort | uniq > /tmp/dns_extract.txt
+      cat /tmp/buffers.txt | grep -o -E "[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*(\.[a-zA-Z]{2,})" | grep -E -v "NULL" | grep -E -v "(^|\.)d?ns[0-9-]*\." | grep -E -v "\->" | grep -E -v "evt.buffer" | sort | uniq > /tmp/dns_extract.txt
       if [[ "${{ inputs.verbose }}" == "true" ]]; then
         echo "Extracted DNS domains" && cat /tmp/dns_extract.txt
       fi
